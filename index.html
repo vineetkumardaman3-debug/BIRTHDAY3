@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday Neeraj bhaiya!</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
+    <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'playfair': ['"Playfair Display"', 'serif'],
+                        'satoshi': ['Satoshi', 'sans-serif'],
+                    },
+                    colors: {
+                        dark: '#0c0a09',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #0c0a09;
+            color: #f3f4f6;
+        }
+
+        /* Layer 1: Aurora Background - Cool Blues/Purples */
+        .aurora-bg {
+            position: fixed;
+            inset: 0;
+            z-index: -2;
+            background: 
+                radial-gradient(circle at 15% 50%, hsla(210, 100%, 40%, .4), transparent 50%),
+                radial-gradient(circle at 85% 30%, hsla(260, 80%, 50%, .3), transparent 50%),
+                radial-gradient(circle at 50% 80%, hsla(180, 90%, 40%, .3), transparent 50%),
+                radial-gradient(circle at 80% 90%, hsla(230, 90%, 50%, .3), transparent 50%);
+            filter: blur(60px);
+            animation: auroraBreathing 12s ease-in-out infinite alternate;
+        }
+
+        @keyframes auroraBreathing {
+            0% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(1.1); opacity: 1; }
+        }
+
+        /* Layer 2: Three.js Canvas container */
+        #three-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Glassmorphism Cards */
+        .glass-card {
+            background: rgba(20, 20, 30, 0.4);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        /* Text Gradients */
+        .text-gradient {
+            background: linear-gradient(to right, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Button Styling */
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: scale(1.05) translateY(-2px);
+            box-shadow: 0 0 25px rgba(59, 130, 246, 0.7);
+        }
+        
+        .btn-primary:active {
+            transform: scale(0.95);
+        }
+
+        /* Progress Bar */
+        .progress-track {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        .progress-fill {
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .pulse-anim {
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); text-shadow: 0 0 20px rgba(59, 130, 246, 0.5); }
+            50% { transform: scale(1.15); text-shadow: 0 0 40px rgba(59, 130, 246, 0.8); }
+        }
+
+        /* Step Container Logic */
+        .step-container {
+            display: none;
+            opacity: 0;
+            transform: scale(0.95) translateY(20px);
+        }
+        .step-container.active {
+            display: flex;
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+
+        /* --- CANDLE ANIMATION CSS --- */
+        .candle-wrapper {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            height: 150px;
+            margin-bottom: 2rem;
+        }
+        .flame {
+            width: 20px;
+            height: 40px;
+            background: radial-gradient(ellipse at bottom, #fde047 10%, #f97316 60%, transparent 100%);
+            border-radius: 50% 50% 20% 20%;
+            box-shadow: 0 0 20px #f59e0b, 0 0 40px #ea580c, 0 0 60px #ea580c;
+            animation: flicker 0.1s infinite alternate;
+            transform-origin: bottom center;
+            margin-bottom: 5px;
+            z-index: 2;
+        }
+        .wick {
+            width: 4px;
+            height: 15px;
+            background: #333;
+            border-radius: 2px;
+            margin-bottom: -5px;
+            z-index: 1;
+        }
+        .candle-body {
+            width: 40px;
+            height: 80px;
+            background: linear-gradient(to right, #3b82f6, #60a5fa, #3b82f6);
+            border-radius: 4px 4px 0 0;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+            position: relative;
+        }
+        .candle-wax {
+            position: absolute;
+            top: 0;
+            left: 5px;
+            width: 10px;
+            height: 25px;
+            background: #93c5fd;
+            border-radius: 10px;
+        }
+        @keyframes flicker {
+            0% { transform: scale(1) rotate(-1deg); opacity: 0.9; }
+            100% { transform: scale(1.05) rotate(1deg); opacity: 1; }
+        }
+        .smoke {
+            position: absolute;
+            top: 30px;
+            width: 10px;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            filter: blur(5px);
+            opacity: 0;
+        }
+
+        /* --- GIFT BOX ANIMATION CSS --- */
+        .gift-container {
+            position: relative;
+            width: 160px;
+            height: 170px;
+            margin: 2rem auto;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        .gift-container:hover {
+            transform: scale(1.05);
+        }
+        .gift-box {
+            position: absolute;
+            bottom: 0;
+            left: 5px;
+            width: 150px;
+            height: 110px;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            border-radius: 4px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+        }
+        .gift-box::before { /* Box vertical ribbon */
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 24px;
+            height: 100%;
+            background: #fde047;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+        }
+        .gift-lid-wrapper {
+            position: absolute;
+            bottom: 105px;
+            left: 0;
+            width: 160px;
+            height: 60px;
+            z-index: 2;
+            transform-origin: bottom right;
+        }
+        .gift-lid {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 35px;
+            background: linear-gradient(135deg, #60a5fa, #3b82f6);
+            border-radius: 4px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .gift-lid::before { /* Lid vertical ribbon */
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 24px;
+            height: 100%;
+            background: #fde047;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+        }
+        .gift-bow {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70px;
+            height: 30px;
+        }
+        .gift-bow::before, .gift-bow::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            width: 35px;
+            height: 25px;
+            border: 8px solid #fde047;
+            border-radius: 50% 50% 0 50%;
+        }
+        .gift-bow::before {
+            left: -5px;
+            transform: rotate(45deg);
+        }
+        .gift-bow::after {
+            right: -5px;
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+        }
+        #gift-glow {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 50px;
+            background: #fff;
+            border-radius: 50%;
+            filter: blur(20px);
+            opacity: 0;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body class="font-satoshi text-gray-100 antialiased selection:bg-blue-500 selection:text-white">
+
+    <div class="aurora-bg"></div>
+    <div id="three-canvas"></div>
+
+    <div class="fixed top-0 left-0 w-full h-1 z-50 progress-track">
+        <div id="progress-bar" class="h-full progress-fill" style="width: 0%;"></div>
+    </div>
+
+    <main class="relative z-10 min-h-screen flex items-center justify-center p-4 sm:p-8">
+        
+        <div id="step-0" class="step-container active flex-col items-center text-center glass-card rounded-3xl p-10 max-w-lg w-full">
+            <h1 class="font-playfair text-3xl sm:text-4xl font-bold mb-4 text-gradient">Make a wish...</h1>
+            
+            <div class="candle-wrapper">
+                <div id="flame" class="flame"></div>
+                <div id="smoke" class="smoke"></div>
+                <div class="wick"></div>
+                <div class="candle-body">
+                    <div class="candle-wax"></div>
+                </div>
+            </div>
+
+            <p class="text-lg text-gray-300 mb-8 leading-relaxed">It's time to kick off the celebration.</p>
+            <button onclick="blowCandle()" class="btn-primary text-white font-bold py-3 px-8 rounded-full tracking-wide">Blow Out Candle 💨</button>
+        </div>
+
+        <div id="step-1" class="step-container flex-col items-center text-center glass-card rounded-3xl p-10 max-w-lg w-full">
+            <div class="text-6xl mb-6 pulse-anim">👑</div>
+            <h1 class="font-playfair text-4xl sm:text-5xl font-bold mb-4 text-gradient">Yo Neeraj bhaiya,</h1>
+            <p class="text-lg text-gray-300 mb-8 leading-relaxed">Built this little interactive setup for your birthday, bro. Had to do something epic for an epic guy.</p>
+            <button onclick="nextStep(2)" class="btn-primary text-white font-bold py-3 px-8 rounded-full tracking-wide">Let's Begin</button>
+        </div>
+
+        <div id="step-2" class="step-container flex-col items-center text-center glass-card rounded-3xl p-10 max-w-lg w-full">
+            <div class="text-6xl mb-6">🚀</div>
+            <h1 class="font-playfair text-4xl sm:text-5xl font-bold mb-4 text-gradient">Happy Birthday!</h1>
+            <p class="text-lg text-gray-300 mb-8 leading-relaxed">Another year of you being an absolute legend. Glad to have you as a brother and looking forward to all the crazy stuff ahead.</p>
+            <button onclick="nextStep(3)" class="btn-primary text-white font-bold py-3 px-8 rounded-full tracking-wide">Keep scrolling...</button>
+        </div>
+
+        <div id="step-3" class="step-container flex-col items-center glass-card rounded-3xl p-8 max-w-2xl w-full">
+            <h2 class="font-playfair text-3xl sm:text-4xl font-bold mb-6 text-gradient text-center">Why You're the Best Bro</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full mb-8">
+                <div class="bg-white/5 border border-white/10 rounded-2xl p-5 md:col-span-2 hover:bg-white/10 transition-colors">
+                    <h3 class="text-xl font-bold mb-2 text-blue-300">🔥 Always Got My Back</h3>
+                    <p class="text-gray-300 text-sm sm:text-base">No matter what goes down, I know you're always there. That loyalty is unmatched.</p>
+                </div>
+                <div class="bg-white/5 border border-white/10 rounded-2xl p-5 hover:bg-white/10 transition-colors">
+                    <h3 class="text-xl font-bold mb-2 text-blue-300">😂 The Sense of Humor</h3>
+                    <p class="text-gray-300 text-sm sm:text-base">You always know how to make the whole squad laugh. Top-tier comedy.</p>
+                </div>
+                <div class="bg-white/5 border border-white/10 rounded-2xl p-5 hover:bg-white/10 transition-colors">
+                    <h3 class="text-xl font-bold mb-2 text-blue-300">⚡ Pure Legend Energy</h3>
+                    <p class="text-gray-300 text-sm sm:text-base">Hanging out with you is always a good time. Never a dull moment.</p>
+                </div>
+            </div>
+
+            <button onclick="nextStep(4)" class="btn-primary text-white font-bold py-3 px-8 rounded-full tracking-wide">Wait, there's more...</button>
+        </div>
+
+        <div id="step-4" class="step-container flex-col items-center text-center glass-card rounded-3xl p-8 max-w-lg w-full">
+            <h2 class="font-playfair text-3xl sm:text-4xl font-bold mb-4 text-gradient">I Got You Something</h2>
+            
+            <div class="gift-container" onclick="openGift()" id="gift-main">
+                <div id="gift-glow"></div>
+                <div class="gift-lid-wrapper" id="lid-wrapper">
+                    <div class="gift-bow"></div>
+                    <div class="gift-lid"></div>
+                </div>
+                <div class="gift-box"></div>
+            </div>
+
+            <p class="text-lg text-gray-300 mt-4 mb-8 leading-relaxed">Tap the box to open your gift!</p>
+            <button id="skip-gift-btn" style="display:none;" onclick="nextStep(5)">Skip</button>
+        </div>
+
+        <div id="step-5" class="step-container flex-col items-center text-center glass-card rounded-3xl p-10 max-w-lg w-full">
+            <div class="text-6xl mb-6">🍻</div>
+            <h1 class="font-playfair text-4xl sm:text-5xl font-bold mb-4 text-gradient">My Wish For You</h1>
+            <p class="text-lg text-gray-300 mb-8 leading-relaxed">Wishing you a year full of massive success, epic moments, and getting everything you aim for. Let's make this year the best one yet.</p>
+            
+            <button id="celebrate-btn" onclick="triggerFinale()" class="btn-primary text-white font-bold py-3 px-8 rounded-full tracking-wide text-lg w-full sm:w-auto">Celebrate!</button>
+            
+            <div id="final-message" class="hidden mt-6 opacity-0 translate-y-4">
+                <p class="font-playfair text-4xl font-bold text-gradient">Happy Birthday, Neeraj bhaiya! 🎉</p>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // --- 1. Three.js Background Objects (Cool Geometric Crystals) ---
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('three-canvas').appendChild(renderer.domElement);
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(5, 5, 5);
+        scene.add(dirLight);
+
+        const geometry = new THREE.IcosahedronGeometry(1.5, 0);
+        const material = new THREE.MeshStandardMaterial({ 
+            color: 0x3b82f6,
+            roughness: 0.3,
+            metalness: 0.6,
+            wireframe: false
+        });
+
+        const objects = [];
+        const numObjects = 30;
+
+        for (let i = 0; i < numObjects; i++) {
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.x = (Math.random() - 0.5) * 40;
+            mesh.position.y = (Math.random() - 0.5) * 30;
+            mesh.position.z = (Math.random() - 0.5) * 20 - 15;
+            
+            const scale = Math.random() * 0.4 + 0.1;
+            mesh.scale.set(scale, scale, scale);
+            mesh.rotation.x = Math.random() * Math.PI;
+            mesh.rotation.y = Math.random() * Math.PI;
+
+            mesh.userData = {
+                speedY: Math.random() * 0.02 + 0.01,
+                speedRot: Math.random() * 0.02 - 0.01,
+                sineOffset: Math.random() * Math.PI * 2,
+                originalX: mesh.position.x
+            };
+            scene.add(mesh);
+            objects.push(mesh);
+        }
+
+        camera.position.z = 15;
+        let isFinale = false;
+
+        function animateThreeJS() {
+            requestAnimationFrame(animateThreeJS);
+            const time = Date.now() * 0.001;
+
+            objects.forEach(mesh => {
+                if (!isFinale) {
+                    mesh.position.y += mesh.userData.speedY;
+                    mesh.position.x = mesh.userData.originalX + Math.sin(time * 2 + mesh.userData.sineOffset) * 1.5;
+                    mesh.rotation.y += mesh.userData.speedRot;
+                    mesh.rotation.x += mesh.userData.speedRot * 0.5;
+
+                    if (mesh.position.y > 20) mesh.position.y = -20;
+                } else {
+                    mesh.position.x *= 1.05;
+                    mesh.position.y += 0.2;
+                    mesh.rotation.y += 0.1;
+                    mesh.rotation.x += 0.1;
+                    mesh.scale.multiplyScalar(0.97); 
+                }
+            });
+            renderer.render(scene, camera);
+        }
+        animateThreeJS();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // --- 2. GSAP Navigation & Logic ---
+        let currentStep = 0;
+        const totalSteps = 5;
+        let giftOpened = false;
+
+        function blowCandle() {
+            const flame = document.getElementById('flame');
+            const smoke = document.getElementById('smoke');
+            
+            gsap.to(flame, { opacity: 0, scale: 0, duration: 0.3, ease: "power2.in" });
+            gsap.to(smoke, { opacity: 0.8, y: -40, scale: 2, duration: 0.8, ease: "power1.out", onComplete: () => { gsap.to(smoke, { opacity: 0, duration: 0.5 }); }});
+            setTimeout(() => { nextStep(1); }, 800);
+        }
+
+        function openGift() {
+            if (giftOpened) return;
+            giftOpened = true;
+            
+            const lid = document.getElementById('lid-wrapper');
+            const glow = document.getElementById('gift-glow');
+            const box = document.getElementById('gift-main');
+
+            // Box squeeze effect
+            gsap.to(box, { scaleY: 0.9, scaleX: 1.05, duration: 0.15, yoyo: true, repeat: 1 });
+
+            // Lid pops off
+            gsap.to(lid, { y: -120, x: 50, rotation: 25, opacity: 0, duration: 0.6, delay: 0.2, ease: "power2.out" });
+            
+            // Inside glow
+            gsap.to(glow, { opacity: 1, scale: 3, duration: 0.5, delay: 0.2 });
+
+            // Gift opening confetti burst
+            setTimeout(() => {
+                confetti({
+                    particleCount: 150,
+                    spread: 80,
+                    origin: { y: 0.6 },
+                    colors: ['#3b82f6', '#fde047', '#ffffff', '#8b5cf6'],
+                    startVelocity: 40
+                });
+            }, 250);
+
+            // Move to final step
+            setTimeout(() => { nextStep(5); }, 1500);
+        }
+
+        function nextStep(step) {
+            if (step > totalSteps) return;
+
+            if (step > 0) {
+                document.getElementById('progress-bar').style.width = `${(step / totalSteps) * 100}%`;
+            }
+
+            const currentCard = document.getElementById(`step-${currentStep}`);
+            const nextCard = document.getElementById(`step-${step}`);
+
+            gsap.to(currentCard, {
+                opacity: 0, scale: 0.9, y: -20, duration: 0.4, ease: "power2.in",
+                onComplete: () => {
+                    currentCard.classList.remove('active');
+                    currentCard.style.display = 'none';
+                    nextCard.style.display = 'flex'; 
+                    
+                    gsap.fromTo(nextCard, 
+                        { opacity: 0, scale: 0.9, y: 20 },
+                        { opacity: 1, scale: 1, y: 0, duration: 0.6, ease: "back.out(1.2)", onStart: () => nextCard.classList.add('active') }
+                    );
+
+                    const children = Array.from(nextCard.children);
+                    gsap.fromTo(children,
+                        { opacity: 0, y: 15 },
+                        { opacity: 1, y: 0, duration: 0.5, stagger: 0.1, delay: 0.2, ease: "power2.out" }
+                    );
+                    currentStep = step;
+                }
+            });
+        }
+
+        // --- 4. Grand Finale (Multiple Celebrations) ---
+        function triggerFinale() {
+            const btn = document.getElementById('celebrate-btn');
+            const finalMsg = document.getElementById('final-message');
+
+            btn.disabled = true;
+            gsap.to(btn, { opacity: 0, scale: 0.8, height: 0, margin: 0, duration: 0.4, display: 'none' });
+
+            finalMsg.classList.remove('hidden');
+            gsap.to(finalMsg, { opacity: 1, y: 0, scale: 1.2, duration: 1, delay: 0.3, ease: "elastic.out(1, 0.3)" });
+
+            isFinale = true; // Blows away 3D background objects
+
+            const duration = 10 * 1000;
+            const animationEnd = Date.now() + duration;
+
+            // ANIMATION 1: School Pride Stars
+            var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 100 };
+            function randomInRange(min, max) { return Math.random() * (max - min) + min; }
+            
+            var fireworksInterval = setInterval(function() {
+                var timeLeft = animationEnd - Date.now();
+                if (timeLeft <= 0) { return clearInterval(fireworksInterval); }
+                var particleCount = 50 * (timeLeft / duration);
+                
+                // Firework 1
+                confetti(Object.assign({}, defaults, { 
+                    particleCount, 
+                    origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
+                    colors: ['#fde047', '#3b82f6', '#ffffff']
+                }));
+                // Firework 2
+                confetti(Object.assign({}, defaults, { 
+                    particleCount, 
+                    origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
+                    colors: ['#8b5cf6', '#60a5fa', '#ffffff']
+                }));
+            }, 400);
+
+            // ANIMATION 2: Side Cannons
+            setTimeout(() => {
+                confetti({ particleCount: 150, spread: 80, origin: { y: 1, x: 0 }, angle: 60, colors: ['#3b82f6', '#8b5cf6', '#ffffff'], startVelocity: 60 });
+                confetti({ particleCount: 150, spread: 80, origin: { y: 1, x: 1 }, angle: 120, colors: ['#3b82f6', '#8b5cf6', '#ffffff'], startVelocity: 60 });
+            }, 500);
+
+            // ANIMATION 3: Continuous Emoji & Standard Shower
+            (function frame() {
+                confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#3b82f6', '#60a5fa'] });
+                confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#3b82f6', '#60a5fa'] });
+                
+                if (Math.random() > 0.75) {
+                    confetti({
+                        particleCount: 1, scalar: 2, shapes: ['text'],
+                        shapeOptions: { text: { value: ['🔥', '🚀', '🎉', '🍻', '👑'][Math.floor(Math.random() * 5)] } },
+                        origin: { x: Math.random(), y: -0.1 }
+                    });
+                }
+                if (Date.now() < animationEnd) { requestAnimationFrame(frame); }
+            }());
+        }
+    </script>
+</body>
+</html>
